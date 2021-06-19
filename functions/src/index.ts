@@ -6,6 +6,9 @@ import{ RankingFunction } from "./ranking";
 import{admin,functions,Constant} from "./config";
 import { UserHistoryFunctions } from "./userHistoryScore";
 import { ReportFunction } from "./report";
+import { RankingGoGreenFunction } from "./rankingGoGreen";
+import { RankingPhotoFunction } from "./rankingPhoto";
+import { RankingRaceFunction }  from "./rankingRacing";
 const cors = require("cors")
 const express = require("express")
 //const json2csv = require("json2csv").parse;
@@ -158,6 +161,51 @@ app.get("*", async (req:any, res:any) => {
       }
     });
 
+    const topRaceScorers = express()
+    topRaceScorers.use(cors({ origin: true }))
+    //topScorers.use(authenticate);
+    topRaceScorers.get("*", async (req:any, res:any) => {
+      try{
+        const userName: string= req.query.uid;
+      let data =await RankingRaceFunction.getRankingDetails(userName);
+      res.status(200).send(data);
+      return;   
+      }catch(error){
+
+        console.error(error);
+        res.status(500).send(error);
+      }
+    });
+
+    const topGoGreenScorers = express()
+    topGoGreenScorers.use(cors({ origin: true }))
+    //topScorers.use(authenticate);
+    topGoGreenScorers.get("*", async (req:any, res:any) => {
+      try{
+        const userName: string= req.query.uid;
+      let data =await RankingGoGreenFunction.getRankingDetails(userName);
+      res.status(200).send(data);
+      return;   
+      }catch(error){
+        console.error(error);
+        res.status(500).send(error);
+      }
+    });
+
+    const topPhotoScorers = express()
+    topPhotoScorers.use(cors({ origin: true }))
+    //topScorers.use(authenticate);
+    topPhotoScorers.get("*", async (req:any, res:any) => {
+      try{
+        const userName: string= req.query.uid;
+      let data =await RankingPhotoFunction.getRankingDetails(userName);
+      res.status(200).send(data);
+      return;   
+      }catch(error){
+        console.error(error);
+        res.status(500).send(error);
+      }
+    });
 
     exports.ranking =  functions.https.onRequest( async (req:any, res:any) => {
       try{
@@ -387,10 +435,10 @@ app.get("*", async (req:any, res:any) => {
   })
 
 
-  const userSaveScore = express()
-  userSaveScore.use(cors({ origin: true }));
+  const userGoGreenSaveScore = express()
+  userGoGreenSaveScore.use(cors({ origin: true }));
   //userSaveScore.use( authenticate);
-  userSaveScore.get("*", async (req:any, res:any) => {
+  userGoGreenSaveScore.get("*", async (req:any, res:any) => {
     try{
       //console.log(req.user);
       const userName: string= req.query.uid;
@@ -405,10 +453,13 @@ app.get("*", async (req:any, res:any) => {
         return; 
       }
 
-      let scorePrev :number = userDoc.data().score  ? userDoc.data().score:0;
-      let totalScore:number=scorePrev> score ? scorePrev:score;
+      let scorePrev :number = userDoc.data().goGreenScore  ? userDoc.data().goGreenScore:0;
+      let scoreNew:number=Number(scorePrev> score ? scorePrev:score);
+      let totalScorePrev :number = userDoc.data().totalScore  ? userDoc.data().totalScore:0;
+      let totalScoreNew= Number(scoreNew)+Number(totalScorePrev)- Number(scorePrev);
         await userref.update({
-          score: totalScore
+          goGreenScore: scoreNew,
+          totalScore: totalScoreNew
           });
           res.status(200).send({
            "msg":"you scored save"
@@ -421,6 +472,84 @@ app.get("*", async (req:any, res:any) => {
       return;
     }
   });
+
+
+  const userRacingSaveScore = express()
+  userRacingSaveScore.use(cors({ origin: true }));
+  //userSaveScore.use( authenticate);
+  userRacingSaveScore.get("*", async (req:any, res:any) => {
+    try{
+      //console.log(req.user);
+      const userName: string= req.query.uid;
+      let score :number =req.query.score;
+      console.log(userName);
+      const db = admin.firestore();
+      var userref = db.collection(Constant.COL_registerUsersData).doc(userName);
+      let userDoc= await userref.get();
+      console.log("user got");
+      if(!userDoc.exists){
+        res.status(500).send("user is invalid ");
+        return; 
+      }
+
+      let scorePrev :number = userDoc.data().raceScore  ? userDoc.data().raceScore:0;
+      let scoreNew:number =Number(scorePrev> score ? scorePrev:score);
+      let totalScorePrev :number =userDoc.data().totalScore  ? userDoc.data().totalScore:0;
+      let totalScoreNew: number= Number(scoreNew)+Number(totalScorePrev)- Number(scorePrev);
+        await userref.update({
+          raceScore: scoreNew,
+          totalScore: totalScoreNew
+          });
+          res.status(200).send({
+           "msg":"you scored save"
+          });
+          return;
+    }catch(error){
+      console.log(error);
+      res.status(500).send(error);
+      return;
+    }
+  });
+
+
+  const userPhotoSaveScore = express()
+  userPhotoSaveScore.use(cors({ origin: true }));
+  //userSaveScore.use( authenticate);
+  userPhotoSaveScore
+  .get("*", async (req:any, res:any) => {
+    try{
+      //console.log(req.user);
+      const userName: string= req.query.uid;
+      let score :number =req.query.score;
+      console.log(userName);
+      const db = admin.firestore();
+      var userref = db.collection(Constant.COL_registerUsersData).doc(userName);
+      let userDoc= await userref.get();
+      console.log("user got");
+      if(!userDoc.exists){
+        res.status(500).send("user is invalid ");
+        return; 
+      }
+
+      let scorePrev :number = userDoc.data().photoScore  ? userDoc.data().photoScore:0;
+      let scoreNew:number=Number(scorePrev> score ? scorePrev:score);
+      let totalScorePrev :number = userDoc.data().totalScore  ? userDoc.data().totalScore:0;
+      let totalScoreNew= Number(scoreNew)+Number(totalScorePrev)- Number(scorePrev);
+        await userref.update({
+          photoScore: scoreNew,
+          totalScore: totalScoreNew
+          });
+          res.status(200).send({
+           "msg":"you scored save"
+          });
+          return;
+    }catch(error){
+      console.log(error);
+      res.status(500).send(error);
+      return;
+    }
+  });
+
 
   const token_validateMethod = express()
   token_validateMethod.use(cors({ origin: true }));
@@ -464,7 +593,10 @@ app.get("*", async (req:any, res:any) => {
 
 
   //const scanQRScodeApi = functions.https.onRequest(app);
-  const topScorersAPi = functions.https.onRequest(topScorers);
+  const topScorersApi = functions.https.onRequest(topScorers);
+  const topRaceApi = functions.https.onRequest(topRaceScorers);
+  const topGoGreenApi = functions.https.onRequest(topGoGreenScorers);
+  const topPhotoApi = functions.https.onRequest(topPhotoScorers);
  // const userHistoryApi = functions.https.onRequest(userHistory);
  // const userReportApi = functions.runWith({ memory: '512MB', timeoutSeconds: 540}).https.onRequest(userReport);
   //const userAddToHomeApi = functions.https.onRequest(userAddtoHomeCredit);
@@ -472,10 +604,12 @@ app.get("*", async (req:any, res:any) => {
  // const allUserReportApi = functions.runWith({ memory: '512MB', timeoutSeconds: 540}).https.onRequest(allUserReport);
  // const qrCodeScannReportApi = functions.runWith({ memory: '512MB', timeoutSeconds: 540}).https.onRequest(qrCodeScannReport);
   //const spclQrCodeScannReportApi = functions.runWith({ memory: '512MB', timeoutSeconds: 540}).https.onRequest(spclQrCodeScannReport);
-  const saveScore = functions.https.onRequest(userSaveScore);
+  const saveGoGreenScore = functions.https.onRequest(userGoGreenSaveScore);
+  const saveRacingScore = functions.https.onRequest(userRacingSaveScore);
+  const savePhotoScore = functions.https.onRequest(userPhotoSaveScore);
   const token_validate = functions.https.onRequest(token_validateMethod);
   module.exports = {
-    saveScore,topScorersAPi,token_validate //scanQRScodeApi,topScorersAPi,userHistoryApi,userReportApi,userAddToHomeApi,getUserStatusApi,allUserReportApi,qrCodeScannReportApi,spclQrCodeScannReportApi
+    topScorersApi,topRaceApi,topGoGreenApi, topPhotoApi,  savePhotoScore, saveRacingScore, saveGoGreenScore,token_validate //scanQRScodeApi,topScorersAPi,userHistoryApi,userReportApi,userAddToHomeApi,getUserStatusApi,allUserReportApi,qrCodeScannReportApi,spclQrCodeScannReportApi
   }
 
   

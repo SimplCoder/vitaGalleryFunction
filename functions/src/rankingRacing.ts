@@ -1,8 +1,9 @@
 
 import{admin,Constant} from "./config"
-export class RankingFunction {
+export class RankingRaceFunction {
     static rankUserMap = new Map<number, String>();
     static userRankMap = new Map<String, number>();
+    static userMap = new Map<String,Object >();
     static inProgress: Boolean = false;
     static async calculateRanking() {
         console.log("calculateRanking called"+this.inProgress);
@@ -13,13 +14,14 @@ export class RankingFunction {
                 this.inProgress = true;
                 const db = admin.firestore();
                 var userref = db.collection(Constant.COL_registerUsersData);
-                var topUsers = await userref.orderBy("totalScore", "desc").get();
+                var topUsers = await userref.orderBy("raceScore", "desc").get();
                 let ranking: number = 0;
                 topUsers.forEach(function (doc: any) {
                     ranking=ranking+1;
                     let id: string = doc.id;
                     tempRankUser.set(ranking, id);
                     tempUserRankMap.set(id, ranking);
+                    RankingRaceFunction.userMap.set(id,doc.data())
                     console.log(doc.id, ' => ', ranking);
                 });
                 console.log("tempRankUser"+tempRankUser.size);
@@ -47,11 +49,12 @@ export class RankingFunction {
             rank = this.userRankMap.size + 1;
         }
         try {
+            if
             var docRef = db.collection(Constant.COL_registerUsersData).doc(userId);
             var doc = await docRef.get()
             if (doc.exists) {
                 let name: string = doc.data().firstName + " " + doc.data().lastName;
-                let score: number = doc.data().totalScore;
+                let score: number = doc.data().raceScore;
                 let userscore: UserScoreRank = new UserScoreRank(rank, name, score);
                 console.log("Document data:", doc.data());
                 return userscore;
@@ -84,7 +87,7 @@ export class RankingFunction {
                     var doc = await docRef.get();
                     if (doc.exists) {
                         let name: string = doc.data().firstName + " " + doc.data().lastName;
-                        let score: number = doc.data().totalScore;
+                        let score: number = doc.data().raceScore;
                         let userscore: UserScoreRank = new UserScoreRank(index, name, score);
                         topuser.push(userscore);
                         console.log("Document data:", doc.data());

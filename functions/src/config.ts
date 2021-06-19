@@ -3,7 +3,6 @@ export const functions = require('firebase-functions');
  export const admin = require('firebase-admin');
  
 
- const ipInfo = require("ipinfo");
  //run npm install -g ipinfo
  //npm install --save ipinfo
 
@@ -16,6 +15,13 @@ export class Constant{
   static FOL_video:String="combinationAni%2F";
   static FOLIMAGE_ACCESS:String="?alt=media";
   static FOLVID_ACCESS:String="?alt=media";
+  static GAME_RACING:string="Racing";
+  static GAME_PHOTO:string="Photo";
+  static GAME_GOGREEN:string="GoGreen";
+  static SCORE_RACING: string="racingScore";
+  static SCORE_PHOTO: string="photoScore";
+  static SCORE_GOGREEN: string="goGreenScore";
+  static SCORE_TOTAL: string="totalScore";
   static RANKS : number[]= [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
   static RANKS_REVERSE : number[]= [21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];
   static scores: number[]= [ /*1*/300, 300,900,
@@ -28,22 +34,6 @@ export class Constant{
   ];
   static async saveLocatocation( ipAddress: string, userName:string){
     try{
-    console.log(ipAddress);
-    ipInfo(ipAddress, async (err:any, cLoc:any) => {
-      console.log(err || cLoc);
-      if(!err ){
-        try{
-          const db = admin.firestore();
-          var userref = db.collection(Constant.COL_registerUsersData).doc(userName);
-         await userref.update({
-            location: cLoc
-          });
-        }catch(err){
-            console.error("error while saving location"+userName)
-          }
-        }
-     
-  });
     return;
 }catch(err){
   console.error("occurred while getting location"+err);
@@ -53,10 +43,9 @@ export class Constant{
 }
 
 
- var serviceAccount = require("../keys/admin.json");
+var serviceAccount = require("../keys/admin.json");
  admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://vitawater-9b375-default-rtdb.firebaseio.com"
+  credential: admin.credential.cert(serviceAccount)
 });
 
 //admin.initializeApp();
