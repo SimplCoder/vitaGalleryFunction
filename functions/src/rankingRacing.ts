@@ -49,7 +49,6 @@ export class RankingRaceFunction {
             rank = this.userRankMap.size + 1;
         }
         try {
-            if
             var docRef = db.collection(Constant.COL_registerUsersData).doc(userId);
             var doc = await docRef.get()
             if (doc.exists) {

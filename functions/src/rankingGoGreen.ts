@@ -13,7 +13,7 @@ export class RankingGoGreenFunction {
                 this.inProgress = true;
                 const db = admin.firestore();
                 var userref = db.collection(Constant.COL_registerUsersData);
-                var topUsers = await userref.orderBy("goGreenscore", "desc").get();
+                var topUsers = await userref.orderBy("goGreenScore", "desc").get();
                 let ranking: number = 0;
                 topUsers.forEach(function (doc: any) {
                     ranking=ranking+1;
@@ -51,7 +51,7 @@ export class RankingGoGreenFunction {
             var doc = await docRef.get()
             if (doc.exists) {
                 let name: string = doc.data().firstName + " " + doc.data().lastName;
-                let score: number = doc.data().goGreenscore;
+                let score: number = doc.data().goGreenScore;
                 let userscore: UserScoreRank = new UserScoreRank(rank, name, score);
                 console.log("Document data:", doc.data());
                 return userscore;
@@ -84,7 +84,7 @@ export class RankingGoGreenFunction {
                     var doc = await docRef.get();
                     if (doc.exists) {
                         let name: string = doc.data().firstName + " " + doc.data().lastName;
-                        let score: number = doc.data().goGreenscore;
+                        let score: number = doc.data().goGreenScore;
                         let userscore: UserScoreRank = new UserScoreRank(index, name, score);
                         topuser.push(userscore);
                         console.log("Document data:", doc.data());

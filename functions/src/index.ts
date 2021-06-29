@@ -592,6 +592,28 @@ app.get("*", async (req:any, res:any) => {
 
 
 
+  const isUserAlreadyPresent = express()
+  isUserAlreadyPresent.use(cors({ origin: true }));
+  isUserAlreadyPresent.get("*", async (req:any, res:any) => {
+    const db = admin.firestore();
+    const mobileNo =req.query.phoneNumber;
+    try{
+      
+        const userRef= await db.collection(Constant.COL_registerUsersData).where( "phoneNumber","==",mobileNo).get();
+        console.log(userRef);
+        if(userRef._size>0){
+          res.status(200).send( true);
+          return
+        }
+        res.status(200).send( false);
+        return
+        
+    }catch(error){
+      console.log(error);
+      res.status(200).send( false);
+      return
+    }
+  });
   //const scanQRScodeApi = functions.https.onRequest(app);
   const topScorersApi = functions.https.onRequest(topScorers);
   const topRaceApi = functions.https.onRequest(topRaceScorers);
@@ -608,8 +630,9 @@ app.get("*", async (req:any, res:any) => {
   const saveRacingScore = functions.https.onRequest(userRacingSaveScore);
   const savePhotoScore = functions.https.onRequest(userPhotoSaveScore);
   const token_validate = functions.https.onRequest(token_validateMethod);
+  const isUserAlreadyPresentApi = functions.https.onRequest(isUserAlreadyPresent);
   module.exports = {
-    topScorersApi,topRaceApi,topGoGreenApi, topPhotoApi,  savePhotoScore, saveRacingScore, saveGoGreenScore,token_validate //scanQRScodeApi,topScorersAPi,userHistoryApi,userReportApi,userAddToHomeApi,getUserStatusApi,allUserReportApi,qrCodeScannReportApi,spclQrCodeScannReportApi
+    isUserAlreadyPresentApi, topScorersApi,topRaceApi,topGoGreenApi, topPhotoApi,  savePhotoScore, saveRacingScore, saveGoGreenScore,token_validate //scanQRScodeApi,topScorersAPi,userHistoryApi,userReportApi,userAddToHomeApi,getUserStatusApi,allUserReportApi,qrCodeScannReportApi,spclQrCodeScannReportApi
   }
 
   
