@@ -50,13 +50,7 @@ export class ReportFunction {
             var docRef = db.collection(Constant.COL_registerUsersData).doc(userId);
             var doc = await docRef.get()
             if (doc.exists) {
-                let name: string = doc.data().firstName + " " + doc.data().lastName;
-                let score: number = doc.data().score;
-                let emailId:String= doc.data().email;
-                let mobileNo:String= doc.data().mobileNumber;
-                let address:String= doc.data().address;
-        
-                let userscore: UserScoreRank = new UserScoreRank(rank, name, score,emailId,mobileNo,address,"","","","",null);
+                let userscore: UserScoreRank =  UserScoreRank.userScoreRank();
                // console.log("Document data:", doc.data());
                 return userscore;
 
@@ -67,43 +61,121 @@ export class ReportFunction {
         } catch (error) {
             console.log(error);
         }
-        return UserScoreRank.UserScoreRank();
+        return  UserScoreRank.userScoreRank();
 
     }
     static async getUserRecords(){
                     let allUserRecords: Array<UserScoreRank> = new Array<UserScoreRank>();
-        try {
+            let duplicateRecods:Array<string>= new Array<string>();
+            try {
                 const db = admin.firestore();
                 var userref = db.collection(Constant.COL_registerUsersData);
-                var allUser = await userref.orderBy("firstName", "desc").get();
-                //let ranking: number = 0;
-                let tempUserRankMap :Map<String, number> = this.userRankMap;
+                var allUser = await userref.orderBy("totalScore", "desc").get();
+                
+               let index: number=0;
                 allUser.forEach(function (doc: any) {
-                    let index: number | undefined = tempUserRankMap.get(doc.id);
+                    index++;
+                    duplicateRecods.push(doc.id);
                     let name: string = doc.data().firstName + " " + doc.data().lastName;
                     let emailId:String= doc.data().email;
-                    let mobileNo:String= doc.data().mobileNumber;
-                    let address:String= doc.data().address;
-                    let postalCode:String= doc.data().postalCode;
-                    let score: number = doc.data().score;
-                    let city:string="";
-                    let state:string="";
-                    let country:string="";
-                    let specialCode=doc.data().specialCodes;
-                    try{
-                        if(doc.data().location){
-                            city=doc.data().location.city;
-                            state=doc.data().location.region;
-                            country=doc.data().location.country;
+                    let mobileNo:String= doc.data().phoneNumber;
+                    let communcation = "no";
+                    if(doc.data().comm !==undefined ){
+                        if(doc.data().comm===true){
+                            communcation= "yes";
                         }
-                    }catch(err){
-                        console.error(err);
                     }
-                    let userscore: UserScoreRank = new UserScoreRank(index, name, score,emailId,mobileNo,address,postalCode,country,state,city,specialCode);
+                    let createdOn:string="";
+                    if(doc.data().regDate !==undefined && doc.data().regDate ){
+                        var myDate:any =  doc.data().regDate; 
+                        var createdOnDate= new Date(myDate._seconds * 1000);
+                        createdOnDate.setHours(createdOnDate.getHours() + 8);
+                        createdOn =createdOnDate.toISOString(); 
+                    } 
+                    let totalScore: number = doc.data().totalScore;
+                    let photoScore: number = doc.data().photoScore;
+                    let photoLastPlayedOn:string="";
+                    if(doc.data().photoLastPlayedOn !==undefined && doc.data().photoLastPlayedOn ){
+                        var myDate:any =  doc.data().photoLastPlayedOn; 
+                        var createdOnDate= new Date(myDate._seconds * 1000);
+                        createdOnDate.setHours(createdOnDate.getHours() + 8);
+                        photoLastPlayedOn =createdOnDate.toISOString(); 
+                    } 
+                    let raceScore: number = doc.data().raceScore;
+                    let raceLastPlayedOn:string="";
+                    if(doc.data().raceLastPlayedOn !==undefined && doc.data().raceLastPlayedOn ){
+                        var myDate:any =  doc.data().raceLastPlayedOn; 
+                        var createdOnDate= new Date(myDate._seconds * 1000);
+                        createdOnDate.setHours(createdOnDate.getHours() + 8);
+                        raceLastPlayedOn =createdOnDate.toISOString(); 
+                    }
+                    let greenScore: number = doc.data().goGreenScore;
+                    let goGreenLastPlayedOn:string="";
+                    if(doc.data().goGreenLastPlayedOn !==undefined && doc.data().goGreenLastPlayedOn ){
+                        var myDate:any =  doc.data().goGreenLastPlayedOn; 
+                        var createdOnDate= new Date(myDate._seconds * 1000);
+                        createdOnDate.setHours(createdOnDate.getHours() + 8);
+                        goGreenLastPlayedOn =createdOnDate.toISOString(); 
+                    }
+                    let userscore: UserScoreRank = new UserScoreRank(index, name,emailId,mobileNo,communcation,createdOn, totalScore,raceScore,raceLastPlayedOn,photoScore,photoLastPlayedOn,greenScore, goGreenLastPlayedOn);
                     allUserRecords.push(userscore);
 
                 });
                
+                var userref1 = db.collection(Constant.COL_registerUsersData);
+                var allUser1 = await userref1.get();
+
+                allUser1.forEach(function (doc: any) {
+                    if(!duplicateRecods.includes(doc.id)){
+
+                    index++;
+                    let name: string = doc.data().firstName + " " + doc.data().lastName;
+                    let emailId:String= doc.data().email;
+                    let mobileNo:String= doc.data().phoneNumber;
+                    let communcation = "no";
+                    if(doc.data().comm !==undefined ){
+                        if(doc.data().comm===true){
+                            communcation= "yes";
+                        }
+                    }
+                    let createdOn:string="";
+                    if(doc.data().regDate !==undefined && doc.data().regDate ){
+                        var myDate:any =  doc.data().regDate; 
+                        var createdOnDate= new Date(myDate._seconds * 1000);
+                        createdOnDate.setHours(createdOnDate.getHours() + 8);
+                        createdOn =createdOnDate.toISOString(); 
+                    } 
+                    let totalScore: number = doc.data().totalScore;
+                    let photoScore: number = doc.data().photoScore;
+                    let photoLastPlayedOn:string="";
+                    if(doc.data().photoLastPlayedOn !==undefined && doc.data().photoLastPlayedOn ){
+                        var myDate:any =  doc.data().photoLastPlayedOn; 
+                        var createdOnDate= new Date(myDate._seconds * 1000);
+                        createdOnDate.setHours(createdOnDate.getHours() + 8);
+                        photoLastPlayedOn =createdOnDate.toISOString(); 
+                    } 
+                    let raceScore: number = doc.data().raceScore;
+                    let raceLastPlayedOn:string="";
+                    if(doc.data().raceLastPlayedOn !==undefined && doc.data().raceLastPlayedOn ){
+                        var myDate:any =  doc.data().raceLastPlayedOn; 
+                        var createdOnDate= new Date(myDate._seconds * 1000);
+                        createdOnDate.setHours(createdOnDate.getHours() + 8);
+                        raceLastPlayedOn =createdOnDate.toISOString(); 
+                    }
+                    let greenScore: number = doc.data().goGreenScore;
+                    let goGreenLastPlayedOn:string="";
+                    if(doc.data().goGreenLastPlayedOn !==undefined && doc.data().goGreenLastPlayedOn ){
+                        var myDate:any =  doc.data().goGreenLastPlayedOn; 
+                        var createdOnDate= new Date(myDate._seconds * 1000);
+                        createdOnDate.setHours(createdOnDate.getHours() + 8);
+                        goGreenLastPlayedOn =createdOnDate.toISOString(); 
+                    }
+                    let userscore: UserScoreRank = new UserScoreRank(index, name,emailId,mobileNo,communcation,createdOn, totalScore,raceScore,raceLastPlayedOn,photoScore,photoLastPlayedOn,greenScore, goGreenLastPlayedOn);
+                    allUserRecords.push(userscore);
+                    }
+
+                });
+
                 console.log("allUserRecords"+allUserRecords.length);
                 return allUserRecords;
             
@@ -200,25 +272,7 @@ return allUserRecords;
                     var docRef = db.collection(Constant.COL_registerUsersData).doc(userId);
                     var doc = await docRef.get();
                     if (doc.exists) {
-                        let name: string = doc.data().firstName + " " + doc.data().lastName;
-                        let emailId:String= doc.data().email;
-                        let mobileNo:String= doc.data().mobileNumber;
-                        let address:String= doc.data().address;
-                        let postalCode:String= doc.data().postalCode;
-                        let score: number = doc.data().score;
-                        let city:string="";
-                        let state:string="";
-                        let country:string="";
-                        try{
-                            if(doc.data().location){
-                                city=doc.data().location.city;
-                                state=doc.data().location.region;
-                                country=doc.data().location.country;
-                            }
-                        }catch(err){
-                            console.error(err);
-                        }
-                        let userscore: UserScoreRank = new UserScoreRank(index, name, score,emailId,mobileNo,address,postalCode,country,state,city,null);
+                        let userscore: UserScoreRank = UserScoreRank.userScoreRank();//new UserScoreRank(index, name, score,emailId,mobileNo,address,postalCode,country,state,city,null);
                         topuser.push(userscore);
                         //console.log("Document data:", doc.data());
 
@@ -252,38 +306,44 @@ export class UserRanking {
 
     }
     static UserRanking(){
-        return new UserRanking(Array<UserScoreRank>(),UserScoreRank.UserScoreRank())
+        return new UserRanking(Array<UserScoreRank>(),UserScoreRank.userScoreRank())
     }
 
 }
 export class UserScoreRank {
-    ranking: number | undefined;
+    ranking: number;
     name: string;
-    score: number;
     emailId:String;
     mobileNo:String;
-    address:String;
-    postalCode:String;
-    locCountry:String;
-    locState:String;
-    locCity:String;
-    specialCodes:any;
-    constructor(ranking: number | undefined, name: string, score: number,emailId:String,
-        mobileNo:String,address:String,postCode:String, locCountry:String,locState:String,locCity:String,specialCodes:any) {
+    communication:String;
+    registrationDate:string;
+    totalScore:number;
+    raceScore:number;
+    raceLastPlayedOn:string;
+    photoScore:number;
+    photoLastPlayedOn:string;
+    speedieScore:number;
+    speedieLastPlayedOn:string;
+
+    constructor(ranking: number , name: string,emailId:String,
+        mobileNo:String,communication:String,registrationDate:string,   totalScore:number,raceScore:number,raceLastPlayedOn:string, photoScore:number,photoLastPlayedOn:string, greenScore:number,speedieLastPlayedOn:string
+    ) {
         this.ranking = ranking;
         this.name = name;
-        this.score = score;
         this.emailId=emailId;
         this.mobileNo=mobileNo;
-        this.address=address;
-        this.postalCode=postCode
-        this.locCountry=locCountry;
-        this.locState=locState;
-        this.locCity=locCity;
-        this.specialCodes= specialCodes;
+        this.communication=communication
+        this.totalScore=totalScore;
+        this.speedieScore=greenScore;
+        this.speedieLastPlayedOn= speedieLastPlayedOn;
+        this.photoScore=photoScore;
+        this.photoLastPlayedOn= photoLastPlayedOn;
+        this.raceScore=raceScore; 
+        this.raceLastPlayedOn=raceLastPlayedOn;  
+        this.registrationDate=registrationDate
     }
-    static UserScoreRank(){
-        return new UserScoreRank( 0,"",0,"","","","","","","",null);
+    static userScoreRank(){
+        return new UserScoreRank( 0,"","","","","",0,0,"",0,"",0,"");
     }    
 }
 

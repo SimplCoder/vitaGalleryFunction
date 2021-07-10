@@ -365,10 +365,14 @@ app.get("*", async (req:any, res:any) => {
   const allUserReport = express()
   allUserReport.use(cors({ origin: true }));
   allUserReport.get("*", async (req:any, res:any) => {
-    const fields = ['ranking', 'name', 'score','emailId','mobileNo','postalCode','address','locCountry','locState','locCity','specialCodes'];
+  const fields = ['ranking', 'name','emailId','mobileNo','communication', 'totalScore', 'photoScore','photoLastPlayedOn', 'speedieScore','speedieLastPlayedOn', 'raceScore','raceLastPlayedOn'];
     // You should you how to prepare an object
     // It could be anything that you like from your collections for example.
-    
+    if(req.query.key!="admin@2021"){
+      res.status(200).send("invalidAccess");
+      return;
+    }
+
     const data= await ReportFunction.getUserRecords();
     // Return JSON to screen
   //  res.status(200).json(report);
@@ -454,12 +458,13 @@ app.get("*", async (req:any, res:any) => {
       }
 
       let scorePrev :number = userDoc.data().goGreenScore  ? userDoc.data().goGreenScore:0;
-      let scoreNew:number=Number(scorePrev> score ? scorePrev:score);
+      let scoreNew:number=Number(score) +Number(scorePrev);
       let totalScorePrev :number = userDoc.data().totalScore  ? userDoc.data().totalScore:0;
       let totalScoreNew= Number(scoreNew)+Number(totalScorePrev)- Number(scorePrev);
         await userref.update({
           goGreenScore: scoreNew,
-          totalScore: totalScoreNew
+          totalScore: totalScoreNew,
+          goGreenLastPlayedOn: new Date()
           });
           res.status(200).send({
            "msg":"you scored save"
@@ -493,12 +498,13 @@ app.get("*", async (req:any, res:any) => {
       }
 
       let scorePrev :number = userDoc.data().raceScore  ? userDoc.data().raceScore:0;
-      let scoreNew:number =Number(scorePrev> score ? scorePrev:score);
+      let scoreNew:number = Number(score) +Number(scorePrev);
       let totalScorePrev :number =userDoc.data().totalScore  ? userDoc.data().totalScore:0;
       let totalScoreNew: number= Number(scoreNew)+Number(totalScorePrev)- Number(scorePrev);
         await userref.update({
           raceScore: scoreNew,
-          totalScore: totalScoreNew
+          totalScore: totalScoreNew,
+          raceLastPlayedOn: new Date()
           });
           res.status(200).send({
            "msg":"you scored save"
@@ -532,12 +538,13 @@ app.get("*", async (req:any, res:any) => {
       }
 
       let scorePrev :number = userDoc.data().photoScore  ? userDoc.data().photoScore:0;
-      let scoreNew:number=Number(scorePrev> score ? scorePrev:score);
+      let scoreNew:number=Number(score) +Number(scorePrev);
       let totalScorePrev :number = userDoc.data().totalScore  ? userDoc.data().totalScore:0;
       let totalScoreNew= Number(scoreNew)+Number(totalScorePrev)- Number(scorePrev);
         await userref.update({
           photoScore: scoreNew,
-          totalScore: totalScoreNew
+          totalScore: totalScoreNew,
+          photoLastPlayedOn: new Date()
           });
           res.status(200).send({
            "msg":"you scored save"
@@ -623,7 +630,7 @@ app.get("*", async (req:any, res:any) => {
  // const userReportApi = functions.runWith({ memory: '512MB', timeoutSeconds: 540}).https.onRequest(userReport);
   //const userAddToHomeApi = functions.https.onRequest(userAddtoHomeCredit);
  // const getUserStatusApi = functions.https.onRequest(getUserStatus);
- // const allUserReportApi = functions.runWith({ memory: '512MB', timeoutSeconds: 540}).https.onRequest(allUserReport);
+  const allUserReportApi = functions.runWith({ memory: '512MB', timeoutSeconds: 540}).https.onRequest(allUserReport);
  // const qrCodeScannReportApi = functions.runWith({ memory: '512MB', timeoutSeconds: 540}).https.onRequest(qrCodeScannReport);
   //const spclQrCodeScannReportApi = functions.runWith({ memory: '512MB', timeoutSeconds: 540}).https.onRequest(spclQrCodeScannReport);
   const saveGoGreenScore = functions.https.onRequest(userGoGreenSaveScore);
@@ -632,7 +639,7 @@ app.get("*", async (req:any, res:any) => {
   const token_validate = functions.https.onRequest(token_validateMethod);
   const isUserAlreadyPresentApi = functions.https.onRequest(isUserAlreadyPresent);
   module.exports = {
-    isUserAlreadyPresentApi, topScorersApi,topRaceApi,topGoGreenApi, topPhotoApi,  savePhotoScore, saveRacingScore, saveGoGreenScore,token_validate //scanQRScodeApi,topScorersAPi,userHistoryApi,userReportApi,userAddToHomeApi,getUserStatusApi,allUserReportApi,qrCodeScannReportApi,spclQrCodeScannReportApi
+    allUserReportApi, isUserAlreadyPresentApi, topScorersApi,topRaceApi,topGoGreenApi, topPhotoApi,  savePhotoScore, saveRacingScore, saveGoGreenScore,token_validate //scanQRScodeApi,topScorersAPi,userHistoryApi,userReportApi,userAddToHomeApi,getUserStatusApi,allUserReportApi,qrCodeScannReportApi,spclQrCodeScannReportApi
   }
 
   
